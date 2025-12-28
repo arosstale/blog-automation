@@ -1,0 +1,335 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String?
+  role          UserRole  @default(USER)
+  apiQuota      Int       @default(1000)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sites         Site[]
+  emailTemplates EmailTemplate[]
+}
+
+model Site {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  domain          String?
+  platform        Platform  @default(NEXTJS)
+  apiCredentials  Json?
+  defaultTone     String    @default("professional")
+  targetAudience  String    @default("general")
+  seoSettings     Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  contentPlans    ContentPlan[]
+  blogPosts       BlogPost[]
+  keywords        Keyword[]
+  keywordClusters KeywordCluster[]
+  outreachCampaigns OutreachCampaign[]
+  socialPosts     SocialPost[]
+  analyticsEvents AnalyticsEvent[]
+  backlinks       Backlink[]
+}
+
+model ContentPlan {
+  id          String            @id @default(cuid())
+  siteId      String
+  site        Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  name        String
+  startDate   DateTime
+  endDate     DateTime?
+  status      ContentPlanStatus @default(DRAFT)
+  settings    Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  blogPosts   BlogPost[]
+}
+
+model BlogPost {
+  id               String        @id @default(cuid())
+  siteId           String
+  site             Site          @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  contentPlanId    String?
+  contentPlan      ContentPlan?  @relation(fields: [contentPlanId], references: [id])
+  title            String
+  slug             String
+  content          String        @db.Text
+  metaTitle        String?
+  metaDescription  String?
+  featuredImageURL String?
+  status           PostStatus    @default(DRAFT)
+  type             PostType      @default(SUPPORTING)
+  keywordId        String?
+  keyword          Keyword?      @relation(fields: [keywordId], references: [id])
+  authorType       AuthorType    @default(AI)
+  wordCount        Int           @default(0)
+  readabilityScore Float?
+  seoScore         Float?
+  generatedAt      DateTime?
+  scheduledAt      DateTime?
+  publishedAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  socialPosts      SocialPost[]
+  analyticsEvents  AnalyticsEvent[]
+  backlinks        Backlink[]
+  jobs             Job[]
+}
+
+model Keyword {
+  id               String         @id @default(cuid())
+  siteId           String
+  site             Site           @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  keyword          String
+  searchVolume     Int?
+  difficulty       Int?
+  searchIntent     SearchIntent?
+  clusterId        String?
+  keywordCluster   KeywordCluster? @relation(fields: [clusterId], references: [id])
+  competitionData  Json?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  blogPosts        BlogPost[]
+}
+
+model KeywordCluster {
+  id               String    @id @default(cuid())
+  siteId           String
+  site             Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  name             String
+  primaryKeywordId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  keywords         Keyword[]
+}
+
+model OutreachCampaign {
+  id          String              @id @default(cuid())
+  siteId      String
+  site        Site                @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  name        String
+  type        CampaignType
+  status      CampaignStatus      @default(DRAFT)
+  templateId  String?
+  targetCount Int                 @default(0)
+  sentCount   Int                 @default(0)
+  replyCount  Int                 @default(0)
+  linkCount   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  prospects   OutreachProspect[]
+}
+
+model OutreachProspect {
+  id          String              @id @default(cuid())
+  campaignId  String
+  campaign    OutreachCampaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  company     String?
+  websiteURL  String?
+  pageURL     String?
+  domainAuthority  Int?
+  pageAuthority    Int?
+  status      ProspectStatus      @default(PENDING)
+  templateData Json?
+  sentAt      DateTime?
+  responseAt  DateTime?
+  linkURL     String?
+  notes       String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model EmailTemplate {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  type            CampaignType
+  subjectTemplate String
+  bodyTemplate    String    @db.Text
+  variables       Json?
+  isDefault       Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model SocialPost {
+  id          String            @id @default(cuid())
+  blogPostId  String
+  blogPost    BlogPost          @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  platform    SocialPlatform
+  content     String            @db.Text
+  imageURL    String?
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  status      SocialPostStatus  @default(DRAFT)
+  metrics     Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model AnalyticsEvent {
+  id          String    @id @default(cuid())
+  siteId      String
+  site        Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  blogPostId  String?
+  blogPost    BlogPost? @relation(fields: [blogPostId], references: [id])
+  eventType   String
+  properties  Json?
+  timestamp   DateTime  @default(now())
+}
+
+model Backlink {
+  id          String    @id @default(cuid())
+  siteId      String
+  site        Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  blogPostId  String?
+  blogPost    BlogPost? @relation(fields: [blogPostId], references: [id])
+  sourceURL   String
+  targetURL   String
+  anchorText  String?
+  domainAuthority Int?
+  pageAuthority   Int?
+  discoveredAt    DateTime  @default(now())
+  lostAt          DateTime?
+  isNofollow      Boolean   @default(false)
+  isSponsored     Boolean   @default(false)
+}
+
+model Job {
+  id          String    @id @default(cuid())
+  type        String
+  status      JobStatus @default(PENDING)
+  payload     Json
+  result      Json?
+  errorMessage String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  blogPostId  String?
+
+  blogPost    BlogPost? @relation(fields: [blogPostId], references: [id])
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+  EDITOR
+  WRITER
+}
+
+enum Platform {
+  NEXTJS
+  WORDPRESS
+  GHOST
+}
+
+enum ContentPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum PostStatus {
+  DRAFT
+  GENERATING
+  READY
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PostType {
+  PILLAR
+  SUPPORTING
+  CASE_STUDY
+  LISTICLE
+  HOW_TO
+  NEWSJACK
+}
+
+enum AuthorType {
+  AI
+  HUMAN
+  HYBRID
+}
+
+enum SearchIntent {
+  INFORMATIONAL
+  COMMERCIAL
+  TRANSACTIONAL
+  NAVIGATIONAL
+}
+
+enum CampaignType {
+  HARO
+  BROKEN_LINKS
+  GUEST_POST
+  RESOURCE_PAGE
+  SKYSCRAPER
+  NEWSJACK
+  PODCAST
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum ProspectStatus {
+  PENDING
+  CONTACTED
+  RESPONDED
+  LINKED
+  DECLINED
+}
+
+enum SocialPlatform {
+  TWITTER
+  LINKEDIN
+  PINTEREST
+  INSTAGRAM
+  FACEBOOK
+}
+
+enum SocialPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
