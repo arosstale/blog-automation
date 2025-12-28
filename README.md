@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blog Automation Platform
+
+AI-powered blog automation platform with SEO optimization, keyword research, and automated outreach.
+
+## Features
+
+- **AI Blog Generation**: Generate SEO-optimized blog posts using GLM (General Language Model)
+- **SEO Analysis**: Real-time SEO scoring and optimization suggestions
+- **Keyword Research**: Find high-volume, low-competition keywords
+- **Internal Linking**: Auto-generate internal linking structure
+- **Content Analytics**: Track performance and engagement metrics
+- **Outreach System**: Automated email outreach for backlink opportunities
+- **Multi-Format Support**: Blog posts, social media content, newsletters
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Database**: PostgreSQL with Prisma ORM
+- **AI**: GLM API for content generation
+- **Styling**: Tailwind CSS
+- **Analytics**: Custom tracking system
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your API keys
+
+# Run database migrations
+npx prisma migrate dev
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/blog_automation"
+GLM_API_KEY="your_glm_api_key"
+OPENAI_API_KEY="your_openai_api_key"  # Optional
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API Endpoints
 
-## Learn More
+### Blog Generation
+```
+POST /api/generate/blog-post
+```
+Body:
+```json
+{
+  "topic": "How to build a startup",
+  "keyword": "startup guide",
+  "tone": "professional",
+  "audience": "entrepreneurs",
+  "wordCount": 2000
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Keyword Research
+```
+POST /api/keywords/research
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### SEO Analysis
+```
+POST /api/seo/analyze
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database Schema
 
-## Deploy on Vercel
+The platform uses 12+ tables including:
+- Blog posts, categories, tags
+- Keywords and research data
+- SEO metrics and analytics
+- Outreach campaigns and templates
+- Media assets and internal links
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
+
+---
+
+Built with ❤️ by [arosstale](https://github.com/arosstale)
